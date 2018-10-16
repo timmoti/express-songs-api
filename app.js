@@ -1,29 +1,52 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const app = express();
-const _ = require('lodash');
-const PORT = 3000
+const PORT = 3000;
 
-app.use(express.static('client'));
-app.use(express.json())
+app.use(express.json());
 
-let songs = [];
-let id = 0;
+const songs = [
+  { id: 1, name: 'Hello', artist: 'Adele' },
+  { id: 2, name: 'Sunday Morning', artist: 'Maroon 5' },
+  { id: 3, name: 'Love Me', artist: 'Colin Raye' }
+];
 
-//return list of all songs
+//get the entire list of data
+app.get('/songs', function(req, res) {
+  res.status(200).json(songs);
+});
 
+//look for a specific song from the database with all accompanying data based on songname
+app.get('/songs/:id', function(req, res) {
+  const songId = +req.params.id; //req.params looks at the current database
+  const requestedSong = songs.find(song => song.id === songId);
+  res.status(200).json(requestedSong);
+});
 
-//create a new song, and return new song
+//Add a new object to the database
+app.post('/songs', function(req, res) {
+  const songName = req.body.name; //req.body inputs data into the database
+  const songArtist = req.body.artist;
+  songs.push({ id: songs.length + 1, name: songName, artist: songArtist });
+  res.status(201).json(songs);
+});
 
+//Changing an object in the database
+app.put('/songs/:id', function(req, res) {
+  let songsWithMatchingId = songs.filter(song => song.id === +req.params.id);
+  let songToBeUpdated = songsWithMatchingId[0];
 
-//return a song with id 
+  songToBeUpdated['name'] = req.body.name;
+  songToBeUpdated['artist'] = req.body.artist;
 
+  res.status(200).json(songToBeUpdated);
+});
 
-//edit a song with id, and return edited song
+//Deleting an object from the database
+app.delete('/songs/:id', function(req, res) {
+  let remainingSongs = songs.filter(song => song.id !== +req.params.id);
+  res.status(200).json(remainingSongs);
+});
 
-
-//delete a song with id, and return deleted song
-
-
-app.listen(PORT);
-console.log(`Server listening on port ${PORT}`);
+const server = app.listen(PORT, function() {
+  console.log(`You're listening to the smooth sounds of port ${PORT}.`);
+});
